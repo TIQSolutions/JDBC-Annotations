@@ -1,0 +1,12 @@
+package de.tiq.jdbc;
+
+ import java.sql.ResultSet;
+ import java.sql.SQLException;
+ import javax.annotation.Generated;
+
+// creation time: $creatingTimestamp
+@Generated("${generatedAnnotationClass}")
+public interface QueryExecutor {
+	ResultSet executeQuery(String sql) throws SQLException;
+	int executeUpdate(String sql) throws SQLException;
+}

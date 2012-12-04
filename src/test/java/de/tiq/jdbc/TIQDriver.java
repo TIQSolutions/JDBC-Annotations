@@ -1,0 +1,133 @@
+/*
+ * Copyright (c) 2012, 2013 All Rights Reserved, www.tiq-solutions.com
+ * 
+ * THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+ * EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED 
+ * WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * This code is product of:
+ *
+ * TIQ Solutions GmbH 
+ * Weißenfelser Str. 84
+ * 04229 Leipzig, Germany
+ *
+ * info@tiq-solutions.com
+ *
+ */
+//package de.tiq.jdbc;
+//
+//import java.io.IOException;
+//import java.io.StringReader;
+//import java.sql.Connection;
+//import java.sql.Driver;
+//import java.sql.DriverPropertyInfo;
+//import java.sql.SQLException;
+//import java.sql.SQLFeatureNotSupportedException;
+//import java.util.Properties;
+//import java.util.logging.Logger;
+//
+//import de.tiq.jdbc.*;
+//
+//public class TIQDriver implements Driver {
+//	
+//	public static String urlScheme = null;
+//	
+//	static {
+//	  try
+//	  {
+//		//register Driver 
+//	    java.sql.DriverManager.registerDriver(new TIQDriver());
+//	  }
+//	  catch (SQLException e) {
+//	    throw new RuntimeException("FATAL ERROR: Could not initialise driver !" + e.getMessage());
+//	  }
+//	}
+//
+//	private static String USAGE = "<SCHEME>://<HOST>:<PORT>?<PARAM1=VALUE1&PARAM2=VALUE2>";
+//	
+//	@Override
+//	public Connection connect(String url, Properties info) throws SQLException {
+//		
+//		String filePath = url.substring(urlScheme.length());
+//		String[] urlParts = filePath.split("\\?");
+//		String query = "";
+//		switch(urlParts.length){
+//			case 1 : 
+//				break;
+//			case 2 :
+//				query = urlParts[1];
+//				//being aware of URL fragment 
+//				if(query.split("#").length == 1)
+//					break;
+//			default : 
+//				throw new SQLException("Bad URL, check the syntax of the URL, " + USAGE);
+//		}
+//		if(filePath.startsWith(urlScheme)){
+//			extractPropertiesFromUrl(info, query);
+//			//TODO set arguments
+//		   	return new TIQConnection(filePath,info);
+//		} else
+//			throw new SQLException("Bad URL Scheme, " + USAGE);
+//	}
+//	
+//	@Override
+//	public int getMajorVersion() {
+//		return 0;
+//	}
+//	
+//	@Override
+//	public int getMinorVersion() {
+//		return 1;
+//	}
+//	
+//	void extractPropertiesFromUrl(Properties prop, String parameterUrl) throws SQLException {
+//		if(prop == null)
+//			prop = extractPropertiesFromUrl(parameterUrl);
+//		else {
+//			prop.putAll(extractPropertiesFromUrl(parameterUrl));
+//		}
+//	}
+//	
+//	Properties extractPropertiesFromUrl(String parameterUrl) throws SQLException {
+//		Properties properties = new Properties();
+//		try {
+//			properties.load(new StringReader(parseParameters(parameterUrl)));
+//			return properties;
+//		} catch (IOException e) {
+//			throw new SQLException(e);
+//		}
+//	}
+//	
+//	String parseParameters(String parameterUrl) throws IOException{
+//		StringBuffer buf = new StringBuffer();
+//		String[] params = parameterUrl.split("&");
+//		for(String curParam : params){
+//			buf.append(curParam); 
+//			buf.append(System.getProperty("line.separator"));
+//		}
+//		return buf.toString();
+//	}
+//
+//	//Stubs
+//	
+//	@Override
+//	public boolean acceptsURL(String url) throws SQLException {
+//		return false;
+//	}
+//
+//	@Override
+//	public DriverPropertyInfo[] getPropertyInfo(String url, Properties info)
+//			throws SQLException {
+//		return null;
+//	}
+//
+//	@Override
+//	public boolean jdbcCompliant() {
+//		return false;
+//	}
+//
+//	@Override
+//	public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+//		return null;
+//	}
+//}
