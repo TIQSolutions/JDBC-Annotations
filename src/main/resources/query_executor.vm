@@ -6,7 +6,11 @@ package de.tiq.jdbc;
 
 // creation time: $creatingTimestamp
 @Generated("${generatedAnnotationClass}")
-public interface QueryExecutor {
-	ResultSet executeQuery(String sql) throws SQLException;
-	int executeUpdate(String sql) throws SQLException;
+public abstract class QueryExecutor {
+	protected TIQConnection con;
+	protected QueryExecutor(TIQConnection con){
+		this.con = con;	
+	}
+	public abstract ResultSet executeQuery(String sql) throws SQLException;
+	public abstract int executeUpdate(String sql) throws SQLException;
 }
