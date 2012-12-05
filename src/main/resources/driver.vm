@@ -36,7 +36,7 @@ public class $className implements Driver {
 	@Override
 	public Connection connect(String url, Properties info) throws SQLException {
 		
-		String filePath = url.substring(urlScheme.length());
+		String filePath = url.substring(urlPrefix.length());
 		String[] urlParts = filePath.split("\\?");
 		String query = "";
 		switch(urlParts.length){
@@ -50,7 +50,7 @@ public class $className implements Driver {
 			default : 
 				throw new SQLException("Bad URL, check the syntax of the URL, " + USAGE);
 		}
-		if(filePath.startsWith(urlPrefix)){
+		if(filePath.startsWith(urlScheme)){
 			extractPropertiesFromUrl(info, query);
 		   	return new TIQConnection(filePath,info);
 		} else
