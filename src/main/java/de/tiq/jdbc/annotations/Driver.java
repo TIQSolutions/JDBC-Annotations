@@ -23,11 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation, that provides meta inforation for your jdbc driver. Must not used more than one.</br>
+ * Annotation, that provides meta inforation for your jdbc driver. Must not used more than one times.</br>
  * 
- * <p><b>name</b> : the name of your driver class, must be set</p> 
+ * <p><b>name</b> : the name of your driver class, mandatory</p> 
  * <p><b>packageDefinition</b> : package of your driver class, default is "de.tiq.driver"</p>
- * <p><b>scheme</b> : ask the driver for checking some url scheme, default is an empty string</p>
+ * <p><b>scheme</b> : ask the driver for checking some url scheme, mandatory</p>
  * <p><b>prefix</b> : jdbc prefix, default is "jdbc:"</p>
  * 
  * @author D. Häberlein
@@ -42,6 +42,6 @@ public @interface Driver {
 	 */
 	String name();
 	String packageDefinition() default "de.tiq.driver";
-	String scheme() default "";
+	String scheme();
 	String prefix() default "jdbc:";
 }
