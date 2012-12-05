@@ -21,17 +21,13 @@ import java.util.concurrent.Executor;
 
 import javax.annotation.Generated;
 
-#foreach( $field in $resourceFields )
-import $field;	
-#end
-
 // creation time: $creatingTimestamp
 @Generated("${generatedAnnotationClass}")
 public class TIQConnection implements Connection{
 
-	#foreach( $field in $resourceFields )
-private $field.getSimpleName() field$foreach.count;	
-	#end
+#foreach( $field in $resourceFields )
+	private $field field$foreach.count;	
+#end
 
 	private String path;
 	private Properties info;
@@ -39,19 +35,23 @@ private $field.getSimpleName() field$foreach.count;
 	public TIQConnection(String path, Properties info) throws SQLException{
 		this.path = path;
 		this.info = info;
+#set($counter = 0)
+#if( !$resourceFields.isEmpty() )
 		try{		
-		#set($counter = 0)
-		#foreach( $field in $resourceFields )
-		#if( $parameterizedConstructor.get($counter) ) 
-field$foreach.count = new ${field}(path, info);
-		#else
-field$foreach.count = new ${field}();
-		#end
-		#set($counter = $counter + 1)
-		#end 
+#end					
+#foreach( $field in $resourceFields )	
+#if( $parameterizedConstructor.get($counter) ) 
+			field$foreach.count = new ${field}(path, info);
+#else
+			field$foreach.count = new ${field}();
+#end
+#set($counter = $counter + 1)
+#end 
+#if( !$resourceFields.isEmpty() )
 		} catch(Exception e){
 			throw new SQLException(e);			
 		}
+#end
 	}
 	
 	@Override
@@ -79,12 +79,12 @@ field$foreach.count = new ${field}();
 		return info;
 	}
 	
-	#foreach( $field in $resourceFields )
+#foreach( $field in $resourceFields )
 	public $field get${field.getSimpleName()}Instance(){
 		return field$foreach.count;
 	}
 			
-	#end
+#end
 	//Stubs
 	
 	@Override

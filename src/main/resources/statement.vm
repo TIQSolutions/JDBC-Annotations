@@ -13,7 +13,9 @@ import javax.annotation.Generated;
 public class TIQStatement implements Statement{
 
 	private TIQConnection con;
+#if ($executorClass)
 	private QueryExecutor exec;
+#end
 
 	public TIQStatement(TIQConnection con) {
 		init(con);
@@ -29,7 +31,9 @@ public class TIQStatement implements Statement{
 	
 	private void init(TIQConnection con){
 		this.con = con;
+#if ($executorClass)
 		exec = new $executorClass(con);
+#end
 	}
 	
 	@Override

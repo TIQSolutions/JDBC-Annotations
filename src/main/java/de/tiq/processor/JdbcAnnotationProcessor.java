@@ -83,15 +83,11 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		if(roundEnv.getRootElements().size() != 0 && laps == 0) {
 			
 			Set<? extends Element> driverAnnotatedClass = roundEnv.getElementsAnnotatedWith(Driver.class);
-			Set<? extends Element> connectionAnnotatedClass = roundEnv.getElementsAnnotatedWith(Connection.class);
-			Set<? extends Element> statementAnnotatedClass = roundEnv.getElementsAnnotatedWith(Statement.class);
 			try {
 				if (isAnnoationsSingleton(driverAnnotatedClass, driverAnnoType.toString(), driverAnnotationCount)) {
 					processElements(roundEnv);
-					if (connectionAnnotatedClass.size() > 0)
-						createConnectionClass();
-					if (statementAnnotatedClass.size() > 0)
-						createStatementClass();
+					createConnectionClass();
+					createStatementClass();
 					createQueryExecutorInterface();
 					msgr.printMessage(Kind.NOTE, "Source generation successfully finished!");
 				}
