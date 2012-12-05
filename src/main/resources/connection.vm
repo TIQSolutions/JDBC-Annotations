@@ -36,10 +36,10 @@ private $field.getSimpleName() field$foreach.count;
 	private String path;
 	private Properties info;
 
-	public TIQConnection(String path, Properties info) {
+	public TIQConnection(String path, Properties info) throws SQLException{
 		this.path = path;
 		this.info = info;
-		
+		try{		
 		#set($counter = 0)
 		#foreach( $field in $resourceFields )
 		#if( $parameterizedConstructor.get($counter) ) 
@@ -48,8 +48,10 @@ field$foreach.count = new ${field}(path, info);
 field$foreach.count = new ${field}();
 		#end
 		#set($counter = $counter + 1)
-		#end
-		
+		#end 
+		} catch(Exception e){
+			throw new SQLException(e);			
+		}
 	}
 	
 	@Override
