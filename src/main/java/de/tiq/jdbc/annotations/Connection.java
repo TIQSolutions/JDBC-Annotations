@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * The annotated class can be instanced by using a parameterized constructor or the default constructor. </br>
  * The parameterized is the default. <b>You can change this behavior by adjusting the value of the Annotation --> @Connection(false)</b></br>
  * The parameters are always the given ones to the Connection class, <b>so your class need to adapt a constructor with the arguments:<br/> 
- * (String jdbcUrl2, Properties driverProperties)</b> 
+ * (String jdbcUrl, Properties driverProperties)</b> 
  * 
  * 
  * @author D. Häberlein

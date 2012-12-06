@@ -24,6 +24,7 @@ import java.util.Properties;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.runtime.log.NullLogChute;
 
 public class VelocityController {
 
@@ -35,6 +36,7 @@ public class VelocityController {
 	public VelocityController() {
 		Properties prop = new Properties();
 		try {
+			System.setProperty("runtime.log.logsystem.class", NullLogChute.class.getName());
 			prop.load(new StringReader(generateProps()));
 		} catch (IOException e) {
 			// should not be raised

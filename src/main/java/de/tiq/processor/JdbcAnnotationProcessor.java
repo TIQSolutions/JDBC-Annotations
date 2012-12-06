@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -36,15 +37,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.VelocityContext;
 
 import de.tiq.jdbc.annotations.Connection;
-import de.tiq.jdbc.annotations.Driver;
-import de.tiq.jdbc.annotations.Statement;
+import de.tiq.jdbc.annotations.JdbcDriver;
 import de.tiq.velocity.VelocityController;
 
 @SupportedAnnotationTypes("*")
@@ -53,8 +53,6 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	private int laps;
 	
-	private Elements elementUtils;
-	private TypeMirror driverAnnoType;
 	private Messager msgr;
 	private Filer filer;
 	private VelocityController vc;
@@ -62,7 +60,8 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	private int driverAnnotationCount;
 	private List<Element> resourceFields = new ArrayList<Element>();
 	private List<Boolean> useParameterizedDefaultConstructor = new ArrayList<Boolean>();
-	private String queryExecutorClassName;
+
+	private String executorClassName;
 	
 	@Override
 	public void init(ProcessingEnvironment processingEnv) {
@@ -70,8 +69,6 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		// annoation processor
 
 		filer = processingEnv.getFiler();
-		elementUtils = processingEnv.getElementUtils();
-		driverAnnoType = elementUtils.getTypeElement(Driver.class.getName()).asType();
 		msgr = processingEnv.getMessager();
 
 		// initialize apache velocity
@@ -82,15 +79,14 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		if(roundEnv.getRootElements().size() != 0 && laps == 0) {
 			
-			Set<? extends Element> driverAnnotatedClass = roundEnv.getElementsAnnotatedWith(Driver.class);
+			Set<? extends Element> driverAnnotatedClass = roundEnv.getElementsAnnotatedWith(JdbcDriver.class);
 			try {
-				if (isAnnoationsSingleton(driverAnnotatedClass, driverAnnoType.toString(), driverAnnotationCount)) {
-					processElements(roundEnv);
-					createConnectionClass();
-					createStatementClass();
-					createQueryExecutorInterface();
-					msgr.printMessage(Kind.NOTE, "Source generation successfully finished!");
-				}
+				processElements(roundEnv);
+				createQueryExecutorClass();
+				createStatementClass(executorClassName);
+				createConnectionClass();
+				warnForUsage(driverAnnotatedClass, driverAnnotationCount);
+				msgr.printMessage(Kind.NOTE, "Source generation successfully finished!");
 			} catch (Exception e) {
 				msgr.printMessage(Kind.ERROR, "failed to generate classes, stacktrace was:\n" + e);
 			}
@@ -103,34 +99,41 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	private void processElements(RoundEnvironment roundEnv) throws IOException {
 		for (Element curElement : roundEnv.getRootElements()) {
 			if (curElement.getAnnotation(javax.annotation.Generated.class) == null && curElement.getKind() == ElementKind.CLASS) {
-				Driver drv = curElement.getAnnotation(Driver.class);
 				Connection con = curElement.getAnnotation(Connection.class);
-				Statement stmt = curElement.getAnnotation(Statement.class);
-				if (drv != null) {
-					createDriverClass(drv.packageDefinition(), drv.name(), drv.prefix(),drv.scheme());
-				}
+				JdbcDriver driverAnnotation = curElement.getAnnotation(JdbcDriver.class);
 				if (con != null) {
 					resourceFields.add(curElement);
 					useParameterizedDefaultConstructor.add(curElement.getAnnotation(Connection.class).value());
 				}
-				if(stmt != null){
-					if(queryExecutorClassName == null){
-						queryExecutorClassName = curElement.toString();
+				if(driverAnnotation != null){
+					if (checkExecutorSuperclass(((TypeElement)curElement).getSuperclass())) {
+						executorClassName = curElement.toString();
 					} else {
-						msgr.printMessage(Kind.MANDATORY_WARNING, "Only one query executor (statement annotated class) is supported! Proceeding anyway using the first one...");
+						executorClassName = null;
+						msgr.printMessage(Kind.WARNING, "The class " + curElement.toString() + " need to extend the abstract class \"QueryExecutor\"!");
 					}
+					createDriverClass(evaluatePackage(driverAnnotation.packageDefinition(), curElement),
+													  driverAnnotation.name(), 
+													  driverAnnotation.prefix(),
+													  driverAnnotation.scheme());
 				}
 			}
 		}
 	}
-	
-	private boolean isAnnoationsSingleton(Set<? extends Element> annotations, String annotationName, int driverAnnotationCount) {
+
+	private String evaluatePackage(String packageName, Element curElement) {
+		return packageName.equals("") ? extractPackage(curElement.toString()) : packageName;
+	}
+
+	private boolean checkExecutorSuperclass(TypeMirror superclass) {
+		msgr.printMessage(Kind.OTHER, superclass.toString());
+		return superclass.toString().endsWith("QueryExecutor");
+	}
+
+	private void warnForUsage(Set<? extends Element> annotations, int driverAnnotationCount) {
 		driverAnnotationCount += annotations.size();
-		if (driverAnnotationCount > 1 || driverAnnotationCount == 0){
-			msgr.printMessage(Kind.ERROR, "Driver Annotation has not been used in the right way! Occurence was :" + this.driverAnnotationCount + " times" );
-			return false;
-		} else 
-			return true;
+		if (driverAnnotationCount != 1)
+			msgr.printMessage(Kind.WARNING, "Driver Annotation has not been used in the right way! Occurence was: " + this.driverAnnotationCount + " times" );
 	}
 	
 	private VelocityContext initializeVelocityContext() {
@@ -165,7 +168,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		writer.close();
 	}
 	
-	private void createStatementClass() throws IOException {
+	private void createStatementClass(String queryExecutorClassName) throws IOException {
 		VelocityContext vcon = initializeVelocityContext();
 		Writer writer = createJavaSourceFile("TIQStatement", "de.tiq.jdbc");
 		vcon.put("resourceFields", resourceFields);
@@ -174,7 +177,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		writer.close();
 	}
 	
-	private void createQueryExecutorInterface() throws IOException{
+	private void createQueryExecutorClass() throws IOException{
 		VelocityContext vcon = initializeVelocityContext();
 		Writer writer = createJavaSourceFile("QueryExecutor", "de.tiq.jdbc");
 		vc.createFileFromTemplate(vcon, vc.getQueryExecTemp(), writer);
@@ -183,5 +186,13 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	
 	public List<Element> getResourceFields() {
 		return resourceFields;
+	}
+	
+	String extractPackage(String qualifiedClassName) {
+		int cuttingDepth = 1;
+		if(qualifiedClassName.endsWith(".java"))
+			cuttingDepth = 2;
+		String[] parts = qualifiedClassName.split("\\.");
+		return StringUtils.join(Arrays.copyOfRange(parts,0,parts.length-cuttingDepth),".");
 	}
 }

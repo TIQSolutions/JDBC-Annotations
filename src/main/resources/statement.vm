@@ -12,11 +12,9 @@ import javax.annotation.Generated;
 @Generated("${generatedAnnotationClass}")
 public class TIQStatement implements Statement{
 
-	private TIQConnection con;
 #if ($executorClass)
 	private QueryExecutor exec;
 #end
-
 	public TIQStatement(TIQConnection con) {
 		init(con);
 	}
@@ -30,7 +28,6 @@ public class TIQStatement implements Statement{
 	}
 	
 	private void init(TIQConnection con){
-		this.con = con;
 #if ($executorClass)
 		exec = new $executorClass(con);
 #end
@@ -50,12 +47,20 @@ public class TIQStatement implements Statement{
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
+#if ($executorClass)
 		return exec.executeQuery(sql);
+#else
+		return null;
+#end
 	}
 
 	@Override
 	public int executeUpdate(String sql) throws SQLException {
+#if ($executorClass)
 		return exec.executeUpdate(sql);
+#else
+		return -1;
+#end
 	}
 
 	@Override
