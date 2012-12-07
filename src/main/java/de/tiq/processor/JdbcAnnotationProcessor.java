@@ -81,10 +81,10 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 			Set<? extends Element> driverAnnotatedClass = roundEnv.getElementsAnnotatedWith(JdbcDriver.class);
 			try {
 				processElements(roundEnv);
-				createTemplateClass("QueryExecutor", DEFAULTPACKAGE, vc.getQueryExecTemp());
-				createTemplateClass("ConnectionHandler", DEFAULTPACKAGE, vc.getConnectionHandlerTemplate());
-				createTemplateClass("TIQConnection", DEFAULTPACKAGE, vc.getConnectionTemp());
-				createTemplateClass("TIQStatement", DEFAULTPACKAGE, vc.getStatementTemp());
+				createTemplateClass("QueryExecutor", DEFAULT_PACKAGE, vc.getQueryExecTemp());
+				createTemplateClass("ConnectionHandler", DEFAULT_PACKAGE, vc.getConnectionHandlerTemplate());
+				createTemplateClass("TIQConnection", DEFAULT_PACKAGE, vc.getConnectionTemp());
+				createTemplateClass("TIQStatement", DEFAULT_PACKAGE, vc.getStatementTemp());
 				warnForUsage(driverAnnotatedClass, driverAnnotationCount);
 				msgr.printMessage(Kind.NOTE, "Source generation successfully finished!");
 			} catch (Exception e) {
