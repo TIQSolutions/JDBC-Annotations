@@ -1,0 +1,21 @@
+package de.tiq.jdbc;
+
+ import java.sql.SQLException;
+ import javax.annotation.Generated;
+
+/**
+ * Abstract class to define mandatory methods, handling the jdbc connection. </br>
+ * Your subclass should be annotated with @Connection
+ *
+ * @author D. Häberlein
+ * @see de.tiq.jdbc.annotations.Connection
+ */
+@Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
+public abstract class ConnectionHandler {
+	protected TIQConnection con;
+	protected ConnectionHandler(TIQConnection con){
+		this.con = con;	
+	}
+	public abstract void connect() throws SQLException;
+	public abstract void close() throws SQLException;
+}

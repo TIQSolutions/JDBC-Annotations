@@ -34,6 +34,7 @@ import java.lang.annotation.Target;
  * 
  * @author D. Häberlein
  * @since  1.6
+ * @see de.tiq.jdbc.QueryExecutor
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE) 

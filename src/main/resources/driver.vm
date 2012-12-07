@@ -13,8 +13,7 @@ import java.util.logging.Logger;
 import de.tiq.jdbc.*;
 import javax.annotation.Generated;
 
-// creation time: $creatingTimestamp
-@Generated("${generatedAnnotationClass}")
+@Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
 public class $className implements Driver {
 	
 	public static String urlScheme = "$urlScheme";

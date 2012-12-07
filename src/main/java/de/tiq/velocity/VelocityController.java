@@ -28,14 +28,17 @@ import org.apache.velocity.runtime.log.NullLogChute;
 
 public class VelocityController {
 
+	private static final String DEFAULT_ENCODING = "utf-8";
 	private Template driverTemp;
 	private Template connectionTemp;
 	private Template statementTemp;
 	private Template queryexecTemplate;
+	private Template connectionHandlerTemplate;
 
 	public VelocityController() {
 		Properties prop = new Properties();
 		try {
+			//for avoiding the occurrence of a velocity log exception, disable completely the log mechanism  
 			System.setProperty("runtime.log.logsystem.class", NullLogChute.class.getName());
 			prop.load(new StringReader(generateProps()));
 		} catch (IOException e) {
@@ -54,10 +57,11 @@ public class VelocityController {
 	}
 
 	void initTemplates() {
-		driverTemp = Velocity.getTemplate("driver.vm");
-		connectionTemp = Velocity.getTemplate("connection.vm");
-		statementTemp = Velocity.getTemplate("statement.vm");
-		queryexecTemplate = Velocity.getTemplate("query_executor.vm");
+		driverTemp = Velocity.getTemplate("driver.vm",DEFAULT_ENCODING);
+		connectionTemp = Velocity.getTemplate("connection.vm",DEFAULT_ENCODING);
+		statementTemp = Velocity.getTemplate("statement.vm",DEFAULT_ENCODING);
+		queryexecTemplate = Velocity.getTemplate("query_executor.vm",DEFAULT_ENCODING);
+		connectionHandlerTemplate = Velocity.getTemplate("connection_handler.vm",DEFAULT_ENCODING);
 	}
 	
 	public Template getDriverTemp() {
@@ -75,9 +79,12 @@ public class VelocityController {
 	public Template getQueryExecTemp() {
 		return queryexecTemplate;
 	}
+
+	public Template getConnectionHandlerTemplate() {
+		return connectionHandlerTemplate;
+	}
 	
 	public void createFileFromTemplate(VelocityContext vcon, Template temp, Writer w){
 		temp.merge(vcon, w);
 	}
-	
 }

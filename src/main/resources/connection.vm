@@ -21,52 +21,49 @@ import java.util.concurrent.Executor;
 
 import javax.annotation.Generated;
 
-// creation time: $creatingTimestamp
-@Generated("${generatedAnnotationClass}")
+@Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
 public class TIQConnection implements Connection{
-
-#foreach( $field in $resourceFields )
-	private $field field$foreach.count;	
+#if($connectionHandler)
+	private $connectionHandler handle;
+#else
+	private ConnectionHandler handle;;
 #end
-
 	private String path;
 	private Properties info;
 
 	public TIQConnection(String path, Properties info) throws SQLException{
 		this.path = path;
 		this.info = info;
-#set($counter = 0)
-#if( !$resourceFields.isEmpty() )
-		try{		
-#end					
-#foreach( $field in $resourceFields )	
-#if( $parameterizedConstructor.get($counter) ) 
-			field$foreach.count = new ${field}(path, info);
-#else
-			field$foreach.count = new ${field}();
-#end
-#set($counter = $counter + 1)
-#end 
-#if( !$resourceFields.isEmpty() )
-		} catch(Exception e){
-			throw new SQLException(e);			
-		}
+#if($connectionHandler)
+		this.handle = new ${connectionHandler}(this);
+		try{
+			handle.connect();
+			} catch(Exception e){
+				throw new SQLException(e);
+			}
 #end
 	}
 	
 	@Override
 	public Statement createStatement() throws SQLException {
-		return new TIQStatement(this);
+		return new TIQStatement(handle);
 	}
 
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-		return new TIQStatement(resultSetType, resultSetConcurrency, this);
+		return new TIQStatement(resultSetType, resultSetConcurrency, handle);
 	}
 	
 	@Override
 	public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-		return new TIQStatement(resultSetType, resultSetConcurrency, resultSetHoldability, this);
+		return new TIQStatement(resultSetType, resultSetConcurrency, resultSetHoldability, handle);
+	}
+	
+	@Override
+	public void close() throws SQLException {
+#if($connectionHandler)
+		handle.close();
+#end
 	}
 	
 	//Getter
@@ -79,12 +76,6 @@ public class TIQConnection implements Connection{
 		return info;
 	}
 	
-#foreach( $field in $resourceFields )
-	public $field get${field.getSimpleName()}Instance(){
-		return field$foreach.count;
-	}
-			
-#end
 	//Stubs
 	
 	@Override
@@ -142,11 +133,6 @@ public class TIQConnection implements Connection{
 		
 	}
 
-	@Override
-	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public boolean isClosed() throws SQLException {

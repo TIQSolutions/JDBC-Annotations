@@ -19,10 +19,8 @@ package de.tiq.processor;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -41,6 +39,7 @@ import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 
 import de.tiq.jdbc.annotations.Connection;
@@ -51,6 +50,8 @@ import de.tiq.velocity.VelocityController;
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class JdbcAnnotationProcessor extends AbstractProcessor{
 
+	private static final String DEFAULT_PACKAGE = "de.tiq.jdbc";
+
 	private int laps;
 	
 	private Messager msgr;
@@ -58,10 +59,9 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	private VelocityController vc;
 
 	private int driverAnnotationCount;
-	private List<Element> resourceFields = new ArrayList<Element>();
-	private List<Boolean> useParameterizedDefaultConstructor = new ArrayList<Boolean>();
 
 	private String executorClassName;
+	private String connectionHandlerClassName;
 	
 	@Override
 	public void init(ProcessingEnvironment processingEnv) {
@@ -78,13 +78,13 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 		if(roundEnv.getRootElements().size() != 0 && laps == 0) {
-			
 			Set<? extends Element> driverAnnotatedClass = roundEnv.getElementsAnnotatedWith(JdbcDriver.class);
 			try {
 				processElements(roundEnv);
-				createQueryExecutorClass();
-				createStatementClass(executorClassName);
-				createConnectionClass();
+				createTemplateClass("QueryExecutor", DEFAULTPACKAGE, vc.getQueryExecTemp());
+				createTemplateClass("ConnectionHandler", DEFAULTPACKAGE, vc.getConnectionHandlerTemplate());
+				createTemplateClass("TIQConnection", DEFAULTPACKAGE, vc.getConnectionTemp());
+				createTemplateClass("TIQStatement", DEFAULTPACKAGE, vc.getStatementTemp());
 				warnForUsage(driverAnnotatedClass, driverAnnotationCount);
 				msgr.printMessage(Kind.NOTE, "Source generation successfully finished!");
 			} catch (Exception e) {
@@ -102,11 +102,15 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 				Connection con = curElement.getAnnotation(Connection.class);
 				JdbcDriver driverAnnotation = curElement.getAnnotation(JdbcDriver.class);
 				if (con != null) {
-					resourceFields.add(curElement);
-					useParameterizedDefaultConstructor.add(curElement.getAnnotation(Connection.class).value());
+					if (checkExecutorSuperclass(((TypeElement)curElement).getSuperclass(), "ConnectionHandler")) {
+						connectionHandlerClassName = curElement.toString();
+					} else {
+						connectionHandlerClassName = null;
+						msgr.printMessage(Kind.WARNING, "The class " + curElement.toString() + " need to extend the abstract class \"ConnectionHandler\"!");
+					}
 				}
 				if(driverAnnotation != null){
-					if (checkExecutorSuperclass(((TypeElement)curElement).getSuperclass())) {
+					if (checkExecutorSuperclass(((TypeElement)curElement).getSuperclass(), "QueryExecutor")) {
 						executorClassName = curElement.toString();
 					} else {
 						executorClassName = null;
@@ -125,9 +129,8 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		return packageName.equals("") ? extractPackage(curElement.toString()) : packageName;
 	}
 
-	private boolean checkExecutorSuperclass(TypeMirror superclass) {
-		msgr.printMessage(Kind.OTHER, superclass.toString());
-		return superclass.toString().endsWith("QueryExecutor");
+	private boolean checkExecutorSuperclass(TypeMirror superclass, String className) {
+		return superclass.toString().endsWith(className);
 	}
 
 	private void warnForUsage(Set<? extends Element> annotations, int driverAnnotationCount) {
@@ -140,6 +143,8 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		VelocityContext vcon = new VelocityContext();
 		vcon.put("creatingTimestamp",new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()));
 		vcon.put("generatedAnnotationClass", getClass().getName());
+		vcon.put("connectionHandler", connectionHandlerClassName);
+		vcon.put("executorClass", executorClassName);
 		return vcon;
 	}
 
@@ -159,33 +164,11 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		writer.close();
 	}
 	
-	private void createConnectionClass() throws IOException {
+	private void createTemplateClass(String className, String packageName, Template temp) throws IOException{
 		VelocityContext vcon = initializeVelocityContext();
-		Writer writer = createJavaSourceFile("TIQConnection", "de.tiq.jdbc");
-		vcon.put("resourceFields", resourceFields);
-		vcon.put("parameterizedConstructor", useParameterizedDefaultConstructor);
-		vc.createFileFromTemplate(vcon, vc.getConnectionTemp(), writer);
+		Writer writer = createJavaSourceFile(className, packageName);
+		vc.createFileFromTemplate(vcon, temp, writer);
 		writer.close();
-	}
-	
-	private void createStatementClass(String queryExecutorClassName) throws IOException {
-		VelocityContext vcon = initializeVelocityContext();
-		Writer writer = createJavaSourceFile("TIQStatement", "de.tiq.jdbc");
-		vcon.put("resourceFields", resourceFields);
-		vcon.put("executorClass", queryExecutorClassName);
-		vc.createFileFromTemplate(vcon, vc.getStatementTemp(), writer);
-		writer.close();
-	}
-	
-	private void createQueryExecutorClass() throws IOException{
-		VelocityContext vcon = initializeVelocityContext();
-		Writer writer = createJavaSourceFile("QueryExecutor", "de.tiq.jdbc");
-		vc.createFileFromTemplate(vcon, vc.getQueryExecTemp(), writer);
-		writer.close();
-	}
-	
-	public List<Element> getResourceFields() {
-		return resourceFields;
 	}
 	
 	String extractPackage(String qualifiedClassName) {

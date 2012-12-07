@@ -4,13 +4,28 @@ package de.tiq.jdbc;
  import java.sql.SQLException;
  import javax.annotation.Generated;
 
-// creation time: $creatingTimestamp
-@Generated("${generatedAnnotationClass}")
+/**
+ * Abstract class to define mandatory methods, processing the sql.</br> 
+ * Your subclass should be annotated with @JdbcDriver
+ *
+ * @author D. Häberlein
+ * @see de.tiq.jdbc.annotations.JdbcDriver
+ */
+@Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
 public abstract class QueryExecutor {
-	protected TIQConnection con;
-	protected QueryExecutor(TIQConnection con){
-		this.con = con;	
+#if($connectionHandler)	
+	protected $connectionHandler handle;
+	
+	protected QueryExecutor($connectionHandler handle){
+		this.handle = handle;	
 	}
+#else
+	protected ConnectionHandler handle;
+	
+	protected QueryExecutor(ConnectionHandler handle){
+		this.handle = handle;	
+	}
+#end
 	public abstract ResultSet executeQuery(String sql) throws SQLException;
 	public abstract int executeUpdate(String sql) throws SQLException;
 }

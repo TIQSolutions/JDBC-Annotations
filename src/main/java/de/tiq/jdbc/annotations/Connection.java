@@ -23,22 +23,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation, that will provide the annotated class in the connection element. </br>
- * You are able to grab an instance of the annotated class for process the query. </br> 
- * It should be used for global resources, which are heavy to build or require a remote connection. </br></br>
- * The annotated class can be instanced by using a parameterized constructor or the default constructor. </br>
- * The parameterized is the default. <b>You can change this behavior by adjusting the value of the Annotation --> @Connection(false)</b></br>
- * The parameters are always the given ones to the Connection class, <b>so your class need to adapt a constructor with the arguments:<br/> 
- * (String jdbcUrl, Properties driverProperties)</b> 
- * 
+ * Annotation that marks a class for the java.sql.Connection object.
+ * The annotated class <b>must</b> extend the ConnectionHandler. It will serve as a bridge to resources, e.g. files or sockets.
  * 
  * @author D. Häberlein
  * @since 1.6
+ * @see de.tiq.jdbc.ConnectionHandler
  *
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE) 
 @Target(ElementType.TYPE)
-public @interface Connection {
-	boolean value() default true;
-}
+public @interface Connection {}
