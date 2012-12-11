@@ -26,7 +26,7 @@ public class TIQConnection implements Connection{
 #if($connectionHandler)
 	private $connectionHandler handle;
 #else
-	private ConnectionHandler handle;;
+	private ConnectionHandler handle;
 #end
 	private String path;
 	private Properties info;
