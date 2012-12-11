@@ -16,14 +16,11 @@
  */
 package de.tiq.velocity;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.io.Writer;
-import java.util.Properties;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.log.NullLogChute;
 
 public class VelocityController {
@@ -34,34 +31,23 @@ public class VelocityController {
 	private Template statementTemp;
 	private Template queryexecTemplate;
 	private Template connectionHandlerTemplate;
+	private VelocityEngine engine;
 
 	public VelocityController() {
-		Properties prop = new Properties();
-		try {
-			//for avoiding the occurrence of a velocity log exception, disable completely the log mechanism  
-			System.setProperty("runtime.log.logsystem.class", NullLogChute.class.getName());
-			prop.load(new StringReader(generateProps()));
-		} catch (IOException e) {
-			// should not be raised
-			throw new RuntimeException("failed to read properties");
-		}
-		Velocity.init(prop);
+		engine = new VelocityEngine();
+		engine.setProperty("runtime.log.logsystem.class", NullLogChute.class.getName());
+		engine.setProperty("resource.loader", "classpath");
+		engine.setProperty("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		engine.init();
 		initTemplates();
 	}
 
-	private String generateProps() {
-		return 
-		"runtime.log.logsystem.class = org.apache.velocity.runtime.log.SystemLogChute\n"
-		+ "resource.loader = classpath\n"
-		+ "classpath.resource.loader.class = org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader";
-	}
-
 	void initTemplates() {
-		driverTemp = Velocity.getTemplate("driver.vm",DEFAULT_ENCODING);
-		connectionTemp = Velocity.getTemplate("connection.vm",DEFAULT_ENCODING);
-		statementTemp = Velocity.getTemplate("statement.vm",DEFAULT_ENCODING);
-		queryexecTemplate = Velocity.getTemplate("query_executor.vm",DEFAULT_ENCODING);
-		connectionHandlerTemplate = Velocity.getTemplate("connection_handler.vm",DEFAULT_ENCODING);
+		driverTemp = engine.getTemplate("driver.vm",DEFAULT_ENCODING);
+		connectionTemp = engine.getTemplate("connection.vm",DEFAULT_ENCODING);
+		statementTemp = engine.getTemplate("statement.vm",DEFAULT_ENCODING);
+		queryexecTemplate = engine.getTemplate("query_executor.vm",DEFAULT_ENCODING);
+		connectionHandlerTemplate = engine.getTemplate("connection_handler.vm",DEFAULT_ENCODING);
 	}
 	
 	public Template getDriverTemp() {
