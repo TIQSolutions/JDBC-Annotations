@@ -17,35 +17,38 @@ public class TIQStatement implements Statement{
 
 #if ($connectionHandler)
 	public TIQStatement($connectionHandler handle) {
-		init(handle);
+		init(0, 0, 0, handle);
 	}
 
 	public TIQStatement(int resultSetType, int resultSetConcurrency, $connectionHandler handle) {
-		init(handle);
+		init(resultSetType, resultSetConcurrency, 0, handle);
 	}
 
 	public TIQStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability, $connectionHandler handle) {
-		init(handle);
+		init(resultSetType, resultSetConcurrency, resultSetHoldability, handle);
 	}
 	
-	private void init($connectionHandler handle){
+	private void init(int resultSetType, int resultSetConcurrency, int resultSetHoldability, $connectionHandler handle){
 #else
 	public TIQStatement(ConnectionHandler handle) {
-		init(handle);
+		init(0, 0, 0, handle);
 	}
 
 	public TIQStatement(int resultSetType, int resultSetConcurrency, ConnectionHandler handle) {
-		init(handle);
+		init(resultSetType, resultSetConcurrency, 0, handle);
 	}
 
 	public TIQStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability, ConnectionHandler handle) {
-		init(handle);
+		init(resultSetType, resultSetConcurrency, resultSetHoldability, handle);
 	}
 
-	private void init(ConnectionHandler handle){
+	private void init(int resultSetType, int resultSetConcurrency, int resultSetHoldability, ConnectionHandler handle){
 #end
 #if ($executorClass)
 		exec = new ${executorClass}(handle);
+		exec.setResultSetType(resultSetType);
+		exec.setResultSetConcurrency(resultSetConcurrency);
+		exec.setResultSetHoldability(resultSetHoldability);
 #end
 	}
 	

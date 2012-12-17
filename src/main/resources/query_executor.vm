@@ -13,6 +13,11 @@ package de.tiq.jdbc;
  */
 @Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
 public abstract class QueryExecutor {
+
+	protected int resultSetType;
+	protected int resultSetConcurrency;
+	protected int resultSetHoldability;
+
 #if($connectionHandler)	
 	protected $connectionHandler handle;
 	
@@ -26,6 +31,19 @@ public abstract class QueryExecutor {
 		this.handle = handle;	
 	}
 #end
+
+	public void setResultSetType(int resultSetType){
+		this.resultSetType = resultSetType;
+	}
+	
+	public void setResultSetConcurrency(int resultSetConcurrency){
+		this.resultSetConcurrency = resultSetConcurrency;
+	}
+	
+	public void setResultSetHoldability(int resultSetHoldability){
+		this.resultSetHoldability = resultSetHoldability;
+	}
+	
 	public abstract ResultSet executeQuery(String sql) throws SQLException;
 	public abstract int executeUpdate(String sql) throws SQLException;
 }
