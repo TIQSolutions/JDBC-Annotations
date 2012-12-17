@@ -21,6 +21,7 @@ import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -43,6 +44,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 
 import de.tiq.jdbc.annotations.Connection;
+import de.tiq.jdbc.annotations.ConnectionMetaData;
 import de.tiq.jdbc.annotations.JdbcDriver;
 import de.tiq.velocity.VelocityController;
 
@@ -51,7 +53,7 @@ import de.tiq.velocity.VelocityController;
 public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	private static final String DEFAULT_PACKAGE = "de.tiq.jdbc";
-
+	
 	private int laps;
 	
 	private Messager msgr;
@@ -62,15 +64,14 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	private String executorClassName;
 	private String connectionHandlerClassName;
+	private String connectionMetaDataProviderClassName;
 	
 	@Override
 	public void init(ProcessingEnvironment processingEnv) {
 		super.init(processingEnv);
 		// annoation processor
-
 		filer = processingEnv.getFiler();
 		msgr = processingEnv.getMessager();
-
 		// initialize apache velocity
 		vc = new VelocityController();
 	}
@@ -83,6 +84,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 				processElements(roundEnv);
 				createTemplateClass("QueryExecutor", DEFAULT_PACKAGE, vc.getQueryExecTemp());
 				createTemplateClass("ConnectionHandler", DEFAULT_PACKAGE, vc.getConnectionHandlerTemplate());
+				createTemplateClass("ConnectionMetaDataProvider", DEFAULT_PACKAGE, vc.getConnectionMetaDataProviderTemplate());
 				createTemplateClass("TIQConnection", DEFAULT_PACKAGE, vc.getConnectionTemp());
 				createTemplateClass("TIQStatement", DEFAULT_PACKAGE, vc.getStatementTemp());
 				warnForUsage(driverAnnotatedClass, driverAnnotationCount);
@@ -101,16 +103,27 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 			if (curElement.getAnnotation(javax.annotation.Generated.class) == null && curElement.getKind() == ElementKind.CLASS) {
 				Connection con = curElement.getAnnotation(Connection.class);
 				JdbcDriver driverAnnotation = curElement.getAnnotation(JdbcDriver.class);
+				ConnectionMetaData conMetaData = curElement.getAnnotation(ConnectionMetaData.class);
+				TypeElement classElement = (TypeElement)curElement;
 				if (con != null) {
-					if (checkExecutorSuperclass(((TypeElement)curElement).getSuperclass(), "ConnectionHandler")) {
+					if (checkExecutorClass(classElement.getSuperclass(), "ConnectionHandler")) {
 						connectionHandlerClassName = curElement.toString();
 					} else {
 						connectionHandlerClassName = null;
 						msgr.printMessage(Kind.WARNING, "The class " + curElement.toString() + " need to extend the abstract class \"ConnectionHandler\"!");
 					}
 				}
+				if(conMetaData != null){
+					List<? extends TypeMirror> containedInterfaces = classElement.getInterfaces();
+					if (foreachToStringEndsWith(containedInterfaces.toArray(new TypeMirror[containedInterfaces.size()]), "ConnectionMetaDataProvider")) {
+						connectionMetaDataProviderClassName = curElement.toString();
+					} else {
+						connectionMetaDataProviderClassName = null;
+						msgr.printMessage(Kind.WARNING, "The class " + curElement.toString() + " need to implement the interface \"ConnectionMetaDataProvider\"!");
+					}
+				}
 				if(driverAnnotation != null){
-					if (checkExecutorSuperclass(((TypeElement)curElement).getSuperclass(), "QueryExecutor")) {
+					if (checkExecutorClass(classElement.getSuperclass(), "QueryExecutor")) {
 						executorClassName = curElement.toString();
 					} else {
 						executorClassName = null;
@@ -129,7 +142,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		return packageName.equals("") ? extractPackage(curElement.toString()) : packageName;
 	}
 
-	private boolean checkExecutorSuperclass(TypeMirror superclass, String className) {
+	private boolean checkExecutorClass(TypeMirror superclass, String className) {
 		return superclass.toString().endsWith(className);
 	}
 
@@ -145,6 +158,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		vcon.put("generatedAnnotationClass", getClass().getName());
 		vcon.put("connectionHandler", connectionHandlerClassName);
 		vcon.put("executorClass", executorClassName);
+		vcon.put("connectionMetaDataProviderClass", connectionMetaDataProviderClassName);
 		return vcon;
 	}
 
@@ -177,5 +191,14 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 			cuttingDepth = 2;
 		String[] parts = qualifiedClassName.split("\\.");
 		return StringUtils.join(Arrays.copyOfRange(parts,0,parts.length-cuttingDepth),".");
+	}
+
+	boolean foreachToStringEndsWith(Object[] testable, String searchable) {
+		for(Object obj : testable){
+			if(obj.toString().endsWith(searchable)){
+				return true;
+			}
+		}
+		return false;
 	}
 }

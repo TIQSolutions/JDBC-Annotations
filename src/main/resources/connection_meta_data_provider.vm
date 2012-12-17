@@ -1,0 +1,23 @@
+package de.tiq.jdbc;
+
+import javax.annotation.Generated;
+
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+
+/**
+ * Interface to provide the connection meta data. </br>
+ * Your class that is implementing it should be annotated with @ConnectionMetaData.
+ *
+ * @author D. Häberlein
+ * @see de.tiq.jdbc.annotations.ConnectionMetaData
+ */
+@Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
+public interface ConnectionMetaDataProvider {
+	DatabaseMetaData getMetaData() throws SQLException;
+#if($connectionHandler)
+	void init($connectionHandler con);
+#else
+	void init();
+#end
+}

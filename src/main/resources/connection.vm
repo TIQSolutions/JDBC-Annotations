@@ -23,6 +23,7 @@ import javax.annotation.Generated;
 
 @Generated("${generatedAnnotationClass}") // creation time: $creatingTimestamp
 public class TIQConnection implements Connection{
+
 #if($connectionHandler)
 	private $connectionHandler handle;
 #else
@@ -30,10 +31,16 @@ public class TIQConnection implements Connection{
 #end
 	private String path;
 	private Properties info;
+#if($connectionMetaDataProviderClass)
+	private ${connectionMetaDataProviderClass} conMetaData;
+#end
 
 	public TIQConnection(String path, Properties info) throws SQLException{
 		this.path = path;
 		this.info = info;
+#if($connectionMetaDataProviderClass)
+		conMetaData = new ${connectionMetaDataProviderClass}();
+#end
 #if($connectionHandler)
 		this.handle = new ${connectionHandler}(this);
 		try{
@@ -41,6 +48,13 @@ public class TIQConnection implements Connection{
 			} catch(Exception e){
 				throw new SQLException(e);
 			}
+#if($connectionMetaDataProviderClass)
+		conMetaData.init(handle);
+#end	
+#else
+#if($connectionMetaDataProviderClass)
+		conMetaData.init();
+#end
 #end
 	}
 	
@@ -63,6 +77,15 @@ public class TIQConnection implements Connection{
 	public void close() throws SQLException {
 #if($connectionHandler)
 		handle.close();
+#end
+	}
+
+	@Override
+	public DatabaseMetaData getMetaData() throws SQLException {
+#if($connectionMetaDataProviderClass)
+		return conMetaData.getMetaData();
+#else
+		return null;
 #end
 	}
 	
@@ -138,12 +161,6 @@ public class TIQConnection implements Connection{
 	public boolean isClosed() throws SQLException {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	@Override
-	public DatabaseMetaData getMetaData() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override

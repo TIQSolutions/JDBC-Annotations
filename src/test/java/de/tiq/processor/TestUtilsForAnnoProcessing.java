@@ -30,4 +30,12 @@ public class TestUtilsForAnnoProcessing {
 		Assert.assertEquals("de.tiq",proc.extractPackage("de.tiq.ClassName.java"));
 		
 	}
+	
+	@Test
+	public void testArrayContainsStringRepresentationOfObject(){
+		JdbcAnnotationProcessor proc = new JdbcAnnotationProcessor();
+		Object[] fixture = new Object[]{"a", "b", "c", new Integer(4), "e"};
+		Assert.assertTrue("array contains toString failed when it should be true", proc.foreachToStringEndsWith(fixture, "e"));
+		Assert.assertFalse("array contains toString failed when it should be false", proc.foreachToStringEndsWith(fixture, "f"));
+	}
 }
