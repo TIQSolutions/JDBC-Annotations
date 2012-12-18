@@ -156,14 +156,12 @@ public class TIQStatement implements Statement{
 
 	@Override
 	public boolean execute(String sql) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		return exec.execute(sql);
 	}
 
 	@Override
 	public ResultSet getResultSet() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return exec.getResultSet();
 	}
 
 	@Override
