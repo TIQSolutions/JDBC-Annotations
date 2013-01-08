@@ -52,6 +52,8 @@ import de.tiq.velocity.VelocityController;
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class JdbcAnnotationProcessor extends AbstractProcessor{
 
+	private static final int _ANNOTATION_PROCESSOR_NOT_ALREADY_CALLED = 0;
+
 	private static final String DEFAULT_PACKAGE = "de.tiq.jdbc";
 	
 	private int laps;
@@ -78,7 +80,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		if(roundEnv.getRootElements().size() != 0 && laps == 0) {
+		if(roundEnv.getRootElements().size() != 0 && laps == _ANNOTATION_PROCESSOR_NOT_ALREADY_CALLED) {
 			Set<? extends Element> driverAnnotatedClass = roundEnv.getElementsAnnotatedWith(JdbcDriver.class);
 			try {
 				processElements(roundEnv);
