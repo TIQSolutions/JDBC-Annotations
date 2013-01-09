@@ -99,6 +99,24 @@ public class TIQStatement implements Statement{
 	}
 
 	@Override
+	public boolean execute(String sql) throws SQLException {
+#if ($executorClass)
+		return exec.execute(sql);
+#else
+		return false;
+#end
+	}
+
+	@Override
+	public ResultSet getResultSet() throws SQLException {
+#if ($executorClass)
+		return exec.getResultSet();
+#else
+		return null;
+#end
+	}
+
+	@Override
 	public void close() throws SQLException {
 		// TODO Auto-generated method stub
 		
@@ -168,16 +186,6 @@ public class TIQStatement implements Statement{
 	public void setCursorName(String name) throws SQLException {
 		// TODO Auto-generated method stub
 		
-	}
-
-	@Override
-	public boolean execute(String sql) throws SQLException {
-		return exec.execute(sql);
-	}
-
-	@Override
-	public ResultSet getResultSet() throws SQLException {
-		return exec.getResultSet();
 	}
 
 	@Override
