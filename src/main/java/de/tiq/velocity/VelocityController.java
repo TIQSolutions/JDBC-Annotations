@@ -29,9 +29,6 @@ public class VelocityController {
 	private Template driverTemp;
 	private Template connectionTemp;
 	private Template statementTemp;
-	private Template queryexecTemplate;
-	private Template connectionHandlerTemplate;
-	private Template connectionMetaDataProvider;
 	private VelocityEngine engine;
 
 	public VelocityController() {
@@ -47,9 +44,6 @@ public class VelocityController {
 		driverTemp = engine.getTemplate("driver.vm",DEFAULT_ENCODING);
 		connectionTemp = engine.getTemplate("connection.vm",DEFAULT_ENCODING);
 		statementTemp = engine.getTemplate("statement.vm",DEFAULT_ENCODING);
-		queryexecTemplate = engine.getTemplate("query_executor.vm",DEFAULT_ENCODING);
-		connectionHandlerTemplate = engine.getTemplate("connection_handler.vm",DEFAULT_ENCODING);
-		connectionMetaDataProvider = engine.getTemplate("connection_meta_data_provider.vm",DEFAULT_ENCODING);
 	}
 	
 	public Template getDriverTemp() {
@@ -62,18 +56,6 @@ public class VelocityController {
 	
 	public Template getStatementTemp() {
 		return statementTemp;
-	}
-	
-	public Template getQueryExecTemp() {
-		return queryexecTemplate;
-	}
-
-	public Template getConnectionHandlerTemplate() {
-		return connectionHandlerTemplate;
-	}
-	
-	public Template getConnectionMetaDataProviderTemplate() {
-		return connectionMetaDataProvider;
 	}
 	
 	public void createFileFromTemplate(VelocityContext vcon, Template temp, Writer w){

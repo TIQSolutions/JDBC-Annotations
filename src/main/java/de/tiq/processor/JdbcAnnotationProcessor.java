@@ -103,9 +103,6 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	private void createDefaultTemplateSources() throws IOException {
 		if (!createdSources) {
-			createTemplateClass("QueryExecutor", DEFAULT_PACKAGE, vc.getQueryExecTemp());
-			createTemplateClass("ConnectionHandler", DEFAULT_PACKAGE, vc.getConnectionHandlerTemplate());
-			createTemplateClass("ConnectionMetaDataProvider", DEFAULT_PACKAGE, vc.getConnectionMetaDataProviderTemplate());
 			createTemplateClass("TIQConnection", DEFAULT_PACKAGE, vc.getConnectionTemp());
 			createTemplateClass("TIQStatement", DEFAULT_PACKAGE, vc.getStatementTemp());
 			createdSources = true;
