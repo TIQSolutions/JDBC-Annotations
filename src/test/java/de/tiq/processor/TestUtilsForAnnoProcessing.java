@@ -35,7 +35,7 @@ public class TestUtilsForAnnoProcessing {
 	public void testArrayContainsStringRepresentationOfObject(){
 		JdbcAnnotationProcessor proc = new JdbcAnnotationProcessor();
 		Object[] fixture = new Object[]{"a", "b", "c", new Integer(4), "e"};
-		Assert.assertTrue("array contains toString failed when it should be true", proc.foreachToStringEndsWith(fixture, "e"));
-		Assert.assertFalse("array contains toString failed when it should be false", proc.foreachToStringEndsWith(fixture, "f"));
+		Assert.assertTrue("array contains toString failed when it should be true", proc.elementOfArrayEndsWith(fixture, "e"));
+		Assert.assertFalse("array contains toString failed when it should be false", proc.elementOfArrayEndsWith(fixture, "f"));
 	}
 }
