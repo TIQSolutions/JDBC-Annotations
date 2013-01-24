@@ -45,6 +45,7 @@ import de.tiq.velocity.VelocityController;
 @SupportedAnnotationTypes("de.tiq.jdbc.annotations.*")
 public class JdbcAnnotationProcessor extends AbstractProcessor{
 
+	private static final String VERSION_NUMBER = "0.0.4";
 	private static final String DEFAULT_PACKAGE = "de.tiq.jdbc";
 	
 	private Messager msgr;
@@ -68,7 +69,7 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		msgr.printMessage(Kind.NOTE, "Started Annotation Processing, Using JDBC_Annotation Version 0.02");
+		msgr.printMessage(Kind.NOTE, "Started Annotation Processing, Using JDBC_Annotation Version " + VERSION_NUMBER);
 		boolean classesConsumed = true;
 		AnnotationElementData elementData = new AnnotationElementData(roundEnv);
 		boolean processClassesInThatRound = willProcessingClasses(roundEnv, elementData);
