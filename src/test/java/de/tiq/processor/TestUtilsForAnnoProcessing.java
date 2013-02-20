@@ -16,7 +16,10 @@
  */
 package de.tiq.processor;
 
-import junit.framework.Assert;
+import java.util.HashSet;
+import java.util.Set;
+
+import static junit.framework.Assert.*;
 
 import org.junit.Test;
 
@@ -25,9 +28,9 @@ public class TestUtilsForAnnoProcessing {
 	@Test
 	public void testPackageExtraction(){
 		JdbcAnnotationProcessor proc = new JdbcAnnotationProcessor();
-		Assert.assertEquals("org.relique.jdbc.csv",proc.extractPackage("org.relique.jdbc.csv.ExecutorImplementationClass"));
-		Assert.assertEquals("de.tiq",proc.extractPackage("de.tiq.ClassName"));
-		Assert.assertEquals("de.tiq",proc.extractPackage("de.tiq.ClassName.java"));
+		assertEquals("org.relique.jdbc.csv",proc.extractPackage("org.relique.jdbc.csv.ExecutorImplementationClass"));
+		assertEquals("de.tiq",proc.extractPackage("de.tiq.ClassName"));
+		assertEquals("de.tiq",proc.extractPackage("de.tiq.ClassName.java"));
 		
 	}
 	
@@ -35,7 +38,16 @@ public class TestUtilsForAnnoProcessing {
 	public void testArrayContainsStringRepresentationOfObject(){
 		JdbcAnnotationProcessor proc = new JdbcAnnotationProcessor();
 		Object[] fixture = new Object[]{"a", "b", "c", new Integer(4), "e"};
-		Assert.assertTrue("array contains toString failed when it should be true", proc.elementOfArrayEndsWith(fixture, "e"));
-		Assert.assertFalse("array contains toString failed when it should be false", proc.elementOfArrayEndsWith(fixture, "f"));
+		assertTrue("array contains toString failed when it should be true", proc.elementOfArrayEndsWith(fixture, "e"));
+		assertFalse("array contains toString failed when it should be false", proc.elementOfArrayEndsWith(fixture, "f"));
+	}
+	
+	@Test
+	public void testgetFirstElementOfSet() {
+		JdbcAnnotationProcessor proc = new JdbcAnnotationProcessor();
+		Set<String> fixture = new HashSet<String>();
+		String fixtureContent = "test"; 
+		fixture.add(fixtureContent);
+		assertEquals(fixtureContent, proc.<String>getFirstElementOfSet(fixture));
 	}
 }

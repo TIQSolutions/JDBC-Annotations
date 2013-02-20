@@ -17,6 +17,7 @@
 package de.tiq.processor;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -32,7 +33,9 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
+import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.Template;
@@ -114,9 +117,56 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 	private void evalDriverAnnotatedElements(Set<? extends Element> driverAnnotatedElements) throws IOException {
 		int countOfAnnotatedClasses = driverAnnotatedElements.size();
 		if(countOfAnnotatedClasses == 1 && !createdDriverClass){
-			buildDriverClass(driverAnnotatedElements);
+			Element annotatedType = this.<Element>getFirstElementOfSet(driverAnnotatedElements);
+			JdbcDriver annotation = annotatedType.getAnnotation(JdbcDriver.class);
+			buildDriverClass(annotatedType);
+			buildServicesFile(annotation);
 		} else {
 			printWarning(countOfAnnotatedClasses);
+		}
+	}
+	
+	private void buildDriverClass(Element annotatedType) throws IOException {
+		JdbcDriver driverMetaInfo = annotatedType.getAnnotation(JdbcDriver.class);
+		String packageName = evaluatePackage(driverMetaInfo.packageDefinition(), annotatedType);
+		createDriverClass(packageName, driverMetaInfo);
+		executorClassName = annotatedType.toString();
+		createdDriverClass = true;
+	}
+	
+	private void createDriverClass(String packageName, JdbcDriver driverMetaInfo) throws IOException {
+		VelocityContext vcon = initializeVelocityContext();
+		vcon.put("package", packageName);
+		vcon.put("className", driverMetaInfo.name());
+		vcon.put("urlPrefix", driverMetaInfo.prefix());
+		vcon.put("urlScheme", driverMetaInfo.scheme());
+		Writer writer = createJavaSourceFile(driverMetaInfo.name(), packageName);
+		vc.createFileFromTemplate(vcon, vc.getDriverTemp(), writer);
+		writer.close();
+	}
+
+	private void buildServicesFile(JdbcDriver annotation) {
+		try {
+			String driverName = annotation.packageDefinition() + "." + annotation.name();
+			//Output path is designed for maven! 
+			FileObject file = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "META-INF/services/java.sql.Driver");
+			writeFile(driverName, file);
+		} catch (Exception e) {
+			System.err.println("Wasn't able to create the services file! Stacktrace was: ");
+			e.printStackTrace();
+		}
+	}
+
+	private void writeFile(String content, FileObject file) throws Exception{
+		OutputStream fileOutputStream = null;
+		try {
+			fileOutputStream = file.openOutputStream();
+			fileOutputStream.write(content.getBytes("utf-8"));
+		} catch(Exception e){
+			throw e;
+		} finally{
+			if (fileOutputStream != null)
+				fileOutputStream.close();
 		}
 	}
 
@@ -124,15 +174,6 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		if(countOfAnnotatedClasses != 1){
 			msgr.printMessage(Kind.WARNING, "Driver Annotation has not been used in the right way! Occurence was: " + countOfAnnotatedClasses + " times" );
 		}
-	}
-
-	private void buildDriverClass(Set<? extends Element> driverAnnotatedElements) throws IOException {
-		Element annotatedType = driverAnnotatedElements.iterator().next();
-		JdbcDriver driverMetaInfo = annotatedType.getAnnotation(JdbcDriver.class);
-		String packageName = evaluatePackage(driverMetaInfo.packageDefinition(), annotatedType);
-		createDriverClass(packageName, driverMetaInfo);
-		executorClassName = annotatedType.toString();
-		createdDriverClass = true;
 	}
 	
 	private void getTypeNameOfConnectionAnnotatedElement(Set<? extends Element> connectionAnnotatedElements) {
@@ -172,17 +213,6 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		return file.openWriter();
 	}
 	
-	private void createDriverClass(String packageName, JdbcDriver driverMetaInfo) throws IOException {
-		VelocityContext vcon = initializeVelocityContext();
-		vcon.put("package", packageName);
-		vcon.put("className", driverMetaInfo.name());
-		vcon.put("urlPrefix", driverMetaInfo.prefix());
-		vcon.put("urlScheme", driverMetaInfo.scheme());
-		Writer writer = createJavaSourceFile(driverMetaInfo.name(), packageName);
-		vc.createFileFromTemplate(vcon, vc.getDriverTemp(), writer);
-		writer.close();
-	}
-	
 	private void createTemplateClass(String className, String packageName, Template temp) throws IOException{
 		VelocityContext vcon = initializeVelocityContext();
 		Writer writer = createJavaSourceFile(className, packageName);
@@ -205,5 +235,10 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 			}
 		}
 		return false;
+	}
+	
+	@SuppressWarnings("unchecked")
+	<T> T getFirstElementOfSet(Set<?> set){
+		return (T)set.iterator().next();
 	}
 }
