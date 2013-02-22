@@ -54,10 +54,6 @@ public class TIQConnection implements Connection{
 	public TIQConnection(String path, Properties info) throws SQLException{
 		this.path = path;
 		this.info = info;
-#if($connectionMetaDataProviderClass)
-		conMetaData = new ${connectionMetaDataProviderClass}();
-		conMetaData.init(handle);
-#end
 #if($connectionHandler)
 		this.handle = new ${connectionHandler}(this);
 		try{
@@ -93,6 +89,10 @@ public class TIQConnection implements Connection{
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException {
 #if($connectionMetaDataProviderClass)
+		if (conMetaData == null) {
+			conMetaData = new ${connectionMetaDataProviderClass}();
+			conMetaData.init(handle);
+		}
 		return conMetaData.getMetaData();
 #else
 		return null;
