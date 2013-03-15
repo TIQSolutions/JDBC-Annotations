@@ -38,7 +38,6 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 
 import de.tiq.jdbc.annotations.JdbcDriver;
@@ -48,7 +47,7 @@ import de.tiq.velocity.VelocityController;
 @SupportedAnnotationTypes("de.tiq.jdbc.annotations.*")
 public class JdbcAnnotationProcessor extends AbstractProcessor{
 
-	private static final String VERSION_NUMBER = "0.0.4";
+	private static final String VERSION_NUMBER = "0.0.5";
 	private static final String DEFAULT_PACKAGE = "de.tiq.jdbc";
 	
 	private Messager msgr;
@@ -107,8 +106,8 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 
 	private void createDefaultTemplateSources() throws IOException {
 		if (!createdSources) {
-			createTemplateClass("TIQConnection", DEFAULT_PACKAGE, vc.getConnectionTemp());
-			createTemplateClass("TIQStatement", DEFAULT_PACKAGE, vc.getStatementTemp());
+			createTemplateClass("TIQConnection", DEFAULT_PACKAGE, "connection.vm");
+			createTemplateClass("TIQStatement", DEFAULT_PACKAGE, "statement.vm");
 			createdSources = true;
 			msgr.printMessage(Kind.NOTE, "Source generation successfully finished!");
 		}
@@ -141,23 +140,23 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		vcon.put("urlPrefix", driverMetaInfo.prefix());
 		vcon.put("urlScheme", driverMetaInfo.scheme());
 		Writer writer = createJavaSourceFile(driverMetaInfo.name(), packageName);
-		vc.createFileFromTemplate(vcon, vc.getDriverTemp(), writer);
+		vc.createFileFromTemplate(vcon, "driver.vm", writer);
 		writer.close();
 	}
 
 	private void buildServicesFile(JdbcDriver annotation) {
 		try {
-			String driverName = annotation.packageDefinition() + "." + annotation.name();
+			String driverNameAsFileContent = annotation.packageDefinition() + "." + annotation.name();
 			//Output path is designed for maven! 
 			FileObject file = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "META-INF/services/java.sql.Driver");
-			writeFile(driverName, file);
+			writeResourceFile(driverNameAsFileContent, file);
 		} catch (Exception e) {
 			System.err.println("Wasn't able to create the services file! Stacktrace was: ");
 			e.printStackTrace();
 		}
 	}
 
-	private void writeFile(String content, FileObject file) throws Exception{
+	private void writeResourceFile(String content, FileObject file) throws Exception{
 		OutputStream fileOutputStream = null;
 		try {
 			fileOutputStream = file.openOutputStream();
@@ -207,17 +206,17 @@ public class JdbcAnnotationProcessor extends AbstractProcessor{
 		vcon.put("connectionMetaDataProviderClass", connectionMetaDataProviderClassName);
 		return vcon;
 	}
-
+	
+	private void createTemplateClass(String className, String packageName, String templateName) throws IOException{
+		VelocityContext vcon = initializeVelocityContext();
+		Writer writer = createJavaSourceFile(className, packageName);
+		vc.createFileFromTemplate(vcon, templateName, writer);
+		writer.close();
+	}
+	
 	private Writer createJavaSourceFile(String className, String packageName) throws IOException {
 		JavaFileObject file = filer.createSourceFile(packageName + "." + className);
 		return file.openWriter();
-	}
-	
-	private void createTemplateClass(String className, String packageName, Template temp) throws IOException{
-		VelocityContext vcon = initializeVelocityContext();
-		Writer writer = createJavaSourceFile(className, packageName);
-		vc.createFileFromTemplate(vcon, temp, writer);
-		writer.close();
 	}
 	
 	String extractPackage(String qualifiedClassName) {

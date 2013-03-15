@@ -18,7 +18,6 @@ package de.tiq.velocity;
 
 import java.io.Writer;
 
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.log.NullLogChute;
@@ -26,39 +25,21 @@ import org.apache.velocity.runtime.log.NullLogChute;
 public class VelocityController {
 
 	private static final String DEFAULT_ENCODING = "utf-8";
-	private Template driverTemp;
-	private Template connectionTemp;
-	private Template statementTemp;
 	private VelocityEngine engine;
 
 	public VelocityController() {
+		initEngine();
+	}
+
+	private void initEngine() {
 		engine = new VelocityEngine();
 		engine.setProperty("runtime.log.logsystem.class", NullLogChute.class.getName());
 		engine.setProperty("resource.loader", "classpath");
 		engine.setProperty("classpath.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		engine.init();
-		initTemplates();
-	}
-
-	void initTemplates() {
-		driverTemp = engine.getTemplate("driver.vm",DEFAULT_ENCODING);
-		connectionTemp = engine.getTemplate("connection.vm",DEFAULT_ENCODING);
-		statementTemp = engine.getTemplate("statement.vm",DEFAULT_ENCODING);
 	}
 	
-	public Template getDriverTemp() {
-		return driverTemp;
-	}
-	
-	public Template getConnectionTemp() {
-		return connectionTemp;
-	}
-	
-	public Template getStatementTemp() {
-		return statementTemp;
-	}
-	
-	public void createFileFromTemplate(VelocityContext vcon, Template temp, Writer w){
-		temp.merge(vcon, w);
+	public void createFileFromTemplate(VelocityContext vcon, String templateName, Writer writer){
+		engine.mergeTemplate(templateName, DEFAULT_ENCODING, vcon, writer);
 	}
 }
