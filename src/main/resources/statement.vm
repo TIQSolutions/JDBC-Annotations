@@ -108,7 +108,9 @@ public class TIQStatement implements Statement{
 
 	@Override
 	public void close() throws SQLException {
-		
+#if ($executorClass)
+		exec.closeStatement();
+#end		
 	}
 
 	@Override
