@@ -65,6 +65,7 @@ public class TIQStatement implements Statement{
 		exec.setResultSetType(resultSetType);
 		exec.setResultSetConcurrency(resultSetConcurrency);
 		exec.setResultSetHoldability(resultSetHoldability);
+		exec.setEnclosingStatement(this);
 #else
 		//FIXME no executor class specified, use @JdbcDriver at QueryExecutor implementation type!
 #end
