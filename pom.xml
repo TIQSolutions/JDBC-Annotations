@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.tiq</groupId>
 	<artifactId>Jdbc_Annotations</artifactId>
-	<version>0.1.3</version>
+	<version>0.1.4</version>
 	<name>JDBC Annotations</name>
 	
 	<inceptionYear>2012</inceptionYear><description>The Project provides annotations to build a JDBC driver.	It Also defines an annotation processor, which is able to 

@@ -30,7 +30,8 @@ public class TIQStatement implements Statement{
 	
 	private QueryExecutor<? extends ConnectionHandler> exec;
 #end
-
+	private boolean isClosed;
+	
 #if ($connectionHandler)
 	public TIQStatement($connectionHandler handle) {
 		init(0, 0, 0, handle);
@@ -110,8 +111,20 @@ public class TIQStatement implements Statement{
 	@Override
 	public void close() throws SQLException {
 #if ($executorClass)
-		exec.closeStatement();
-#end		
+		if(!isClosed) {
+			exec.closeStatement();
+			ResultSet currentRs = exec.getResultSet();
+			if(currentRs != null) {
+				currentRs.close();
+			}
+		}
+#end	
+		isClosed = true;
+	}
+
+	@Override
+	public boolean isClosed() throws SQLException {
+		return isClosed;
 	}
 
 	@Override
@@ -282,11 +295,6 @@ public class TIQStatement implements Statement{
 	@Override
 	public int getResultSetHoldability() throws SQLException {
 		return 0;
-	}
-
-	@Override
-	public boolean isClosed() throws SQLException {
-		return false;
 	}
 
 	@Override
