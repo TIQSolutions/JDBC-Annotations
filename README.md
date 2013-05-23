@@ -41,13 +41,13 @@ In order to obtain the JdbcUtils with this functionality, you can retrieve the s
 Currently, you can use the following annotations:
 
 #### JdbcDriver
-
+```java
 @JdbcDriver(name = "DriverClassName", packageDefinition = "org.example.pge", prefix = "jdbc", scheme = "file")
 Class ArbitaryClasss extends QueryExecutor
 {
 	//... class body	
 }
-
+```
 Note: The QueryExecutor superclass is a part of the JdbcUtils project also published on GitHub.
 
 The JdbcDriver annotation provides meta information for your generated driver. Also, it marks the class which will execute SQL Queries.
@@ -67,25 +67,25 @@ scheme: This attribute determines the file scheme of your jdbc url. If a given c
 		the driver class will raise an sql exception.
 		
 For example with the given parameters of the class above, you would get a driver class like:
-
-package org.example.pge;
+```java
+package org.example.page;
 
 class DriverClassName implements Driver{
 	//... class body 
 }
-
+```
 You could connect to the driver with a jdbc url matching the pattern "jdbc:file///...filepath".
 
 #### Connection
 
 A connection annotation marks a connection handler class. You highlight the class which will be responsible for creating a connection and closing it:
-
+```java
 @Connection
 Class YourConnectionHandlerClass extends ConnectionHandler
 {
 	//... class body	
 }
-
+```
 Note: The ConnectionHandler superclass is a part of the JdbcUtils project also published on GitHub. 
 
 The annotation has no attributes.  
@@ -94,13 +94,13 @@ Your class serves as a proxy class. All jdbc connection calls will be delegated 
 #### ConnectionMetaData
 
 This annotation enables you to specify connection meta data information: 
-
+```java
 @ConnectionMetaData
 Class YourConnectionHandlerClass implements ConnectionMetaDataProvider
 {
 	//... class body	
 }
- 
+```
 Note: The ConnectionMetaDataProvider interface is a part of the JdbcUtils project also published on GitHub.
 	
 	
